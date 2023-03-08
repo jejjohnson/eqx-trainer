@@ -19,3 +19,8 @@ build/
 # Default virtual env location created by poetry
 .venv/
 \_build/
+\.vscode/
+\.ipynb_checkpoints/
+*.ckpt
+*.nc
+\private/

@@ -8,7 +8,7 @@ ROOT = ./
 PIP = pip
 CONDA = conda
 SHELL = bash
-PKGROOT = ml_template
+PKGROOT = eqx_trainer
 TESTS = ${PKGROOT}/tests
 ENVS = ${PKGROOT}/environments
 

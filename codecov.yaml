@@ -7,7 +7,7 @@ coverage:
         threshold: 5%
 
 fixes:
-  - "/home/runner/work/jaxsw/jaxsw/::" # Correct paths
+  - "/home/runner/work/eqx-trainer/eqx_trainer/::" # Correct paths
 
 ignore:
   - "setup.py"

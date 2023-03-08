@@ -1,7 +1,7 @@
 # Personal Py-Package Template
 
-[![codecov](https://codecov.io/gh/jejjohnson/py_template/branch/master/graph/badge.svg?token=DM1DRDASU2)](https://codecov.io/gh/jejjohnson/py_template)
-[![CodeFactor](https://www.codefactor.io/repository/github/jejjohnson/py_template/badge)](https://www.codefactor.io/repository/github/jejjohnson/py_template)
+[![codecov](https://codecov.io/gh/jejjohnson/eqx-trainer/branch/master/graph/badge.svg?token=DM1DRDASU2)](https://codecov.io/gh/jejjohnson/eqx-trainer)
+[![CodeFactor](https://www.codefactor.io/repository/github/jejjohnson/eqx-trainer/badge)](https://www.codefactor.io/repository/github/jejjohnson/eqx-trainer)
 
 This is my personal template for python packages
 
@@ -17,31 +17,26 @@ This is my personal template for python packages
 ---
 ## Installation
 
+This package isn't pip-worthy (yet) but here are a few options for installation.
 
-**Option I**: Use the `setup.py` file
-
-```bash
-python setup.py install
-```
-
-**Option II**: Use the `pip` install option (locally)
+**Option I**: Use the `pip` install option (locally)
 
 ```bash
+https://github.com/jejjohnson/eqx-trainer.git
+cd eqx-trainer
 pip install -e .
 ```
 
-**Option III**:
+**Option II**: Install it from pip directly.
 
 ```bash
-pip install "git+https://github.com/jejjohnson/py_template.git"
+pip install "git+https://github.com/jejjohnson/eqx-trainer.git"
 ```
 
 
 
 ---
+---
 ## Inspiration
 
-* [plum](https://github.com/wesselb/plum)
-* [GPJax](https://github.com/JaxGaussianProcesses/GPJax/tree/master)
-* [Nvidia-Merlin DataLoader](https://github.com/NVIDIA-Merlin/dataloader/tree/main)
-* [xrft](https://github.com/xgcm/xrft/tree/master)
+* [lucidrains/siren-pytorch](https://github.com/lucidrains/siren-pytorch/tree/master)
