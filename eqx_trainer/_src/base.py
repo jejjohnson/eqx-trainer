@@ -1,12 +1,16 @@
-import equinox as eqx
-from typing import Dict, Any, Optional, Iterator, List
-import jax
-from .trainstate import TrainState
-from collections import defaultdict
 import time
-from tqdm import tqdm
+from typing import Dict, Any, Optional, Iterator, List, Tuple
+from jaxtyping import Array, PyTree
+import jax
 import optax
-from jaxtyping import Array
+import equinox as eqx
+from tqdm import tqdm
+from eqx_trainer._src.trainstate import TrainState
+from collections import defaultdict
+from pathlib import Path
+
+
+
 
 # WANDBLOGGER = pl
 
@@ -16,13 +20,13 @@ class TrainerModule:
         self,
         model: eqx.Module,
         optimizer: optax.GradientTransformation,
-        input_init: Array,
         seed: int = 42,
-        pl_logger: Optional=None,
+        pl_logger: Optional = None,
         enable_progress_bar: bool = True,
         debug: bool = False,
         check_val_every_n_epoch: int = 1,
         log_dir: str = "",
+        save_name: str = "checkpoint_model.ckpt",
         **kwargs,
     ):
         """
@@ -47,22 +51,21 @@ class TrainerModule:
         self.debug = debug
         self.seed = seed
         self.check_val_every_n_epochs = check_val_every_n_epoch
-        self.input_init = input_init
         self.log_dir = log_dir
         # init trainer parts
         self.pl_logger = pl_logger
-        self.optimizer = optimizer
         self.create_jitted_functions()
-        self.model = model
-        self.optimizer = optimizer
+        self.state = TrainState(params=model, tx=optimizer)
+        self.save_name = save_name
+        
+    @property
+    def model(self):
+        return self.state.params
 
-    # def init_model(self, input_init: Any):
-    #     model_rng = jax.random.PRNGKey(self.seed)
-    #     model_rng, init_rng = jax.random.split(model_rng)
-    #     self.run_model_init(input_init)
-
-    def run_model_init(self, input_init):
-        return jax.vmap(self.model)(input_init)
+    @property
+    def model_batch(self):
+        return jax.vmap(self.state.params)
+    
 
     def create_jitted_functions(self):
         train_step, eval_step = self.create_functions()
@@ -72,9 +75,7 @@ class TrainerModule:
 
         else:
             self.train_step = eqx.filter_jit(train_step)
-            # self.train_step = jax.jit(train_step)
             self.eval_step = eqx.filter_jit(eval_step)
-            # self.eval_step = jax.jit(eval_step)
 
     def create_functions(self):
         def train_step(state: TrainState, batch: Any):
@@ -93,9 +94,7 @@ class TrainerModule:
         else:
             return iterator
 
-    def train_epoch(
-        self, train_dataloader: Iterator, model, opt_state
-    ) -> Dict[str, Any]:
+    def train_epoch(self, train_dataloader: Iterator, state) -> Tuple[PyTree, Dict]:
         """
         Trains a model for one epoch.
 
@@ -112,12 +111,12 @@ class TrainerModule:
         start_time = time.time()
         for batch in self.tracker(train_dataloader, desc="Training", leave=False):
             # self.state, loss, step_metrics = self.train_step(self.state, batch)
-            model, opt_state, loss, step_metrics = self.train_step(model, opt_state, batch)
+            state, loss, step_metrics = self.train_step(state, batch)
             for key in step_metrics:
                 metrics["train/" + key] += step_metrics[key] / num_train_steps
         metrics = {key: metrics[key].item() for key in metrics}
         metrics["epoch_time"] = time.time() - start_time
-        return model, opt_state, metrics
+        return state, metrics
 
     def eval_model(self, dataloader: Iterator, model, log_prefix=""):
         metrics = defaultdict(float)
@@ -141,17 +140,14 @@ class TrainerModule:
     def train_model(self, dm, num_epochs: int = 500):
         dm.setup()
         self.on_training_start()
-        model = self.model
-        opt_state = self.optimizer.init(model)
-
+        state = self.state
+        best_eval_metrics = None
         with tqdm(range(1, num_epochs + 1), desc="Epochs") as pbar_epoch:
             for epoch_idx in pbar_epoch:
                 self.on_training_epoch_start(epoch_idx)
-                
-                model, opt_state, train_metrics = self.train_epoch(
-                    dm.train_dataloader(), model, opt_state
-                )
-                
+
+                state, train_metrics = self.train_epoch(dm.train_dataloader(), state)
+
                 pbar_epoch.set_description(
                     f"Epochs: {epoch_idx} | Loss: {train_metrics['train/loss']:.3e}"
                 )
@@ -161,29 +157,62 @@ class TrainerModule:
 
                 if epoch_idx % self.check_val_every_n_epochs == 0:
                     eval_metrics = self.eval_model(
-                        dm.val_dataloader(), model, log_prefix="val/"
+                        dm.val_dataloader(), state.params, log_prefix="val/"
                     )
                     self.on_validation_epoch_end(
                         epoch_idx, eval_metrics, dm.val_dataloader()
                     )
                     if self.pl_logger:
                         self.pl_logger.log_metrics(eval_metrics, step=epoch_idx)
+                        
+                    if self.is_new_model_better(eval_metrics, best_eval_metrics):
+                        best_eval_metrics = eval_metrics
+                        best_eval_metrics.update(train_metrics)
+                        self.save_model()
 
-        # with tqdm(range(1, num_epochs+1), desc="Epochs") as pbar_epoch:
-        #     for epoch_idx in pbar_epoch:
-        #         self.on_training_epoch_start(epoch_idx)
-        #         train_metrics = self.train_epoch(dm.train_dataloader())
-        #         pbar_epoch.set_description(f"Epochs: {epoch_idx} | Loss: {train_metrics['train/loss']:.3e}")
-        #         self.on_training_epoch_end(epoch_idx)
-        #
-        #         if epoch_idx % self.check_val_every_n_epochs == 0:
-        #             eval_metrics = self.eval_model(dm.val_dataloader(), log_prefix="val/")
-        self.model = model
-        self.opt_state = opt_state
+        self.state = state
         self.on_training_end()
-        if self.pl_logger:
-            self.pl_logger.finalize("success")
         return train_metrics
+    
+    
+    def is_new_model_better(self,
+                            new_metrics : Dict[str, Any],
+                            old_metrics : Dict[str, Any]) -> bool:
+        """
+        Compares two sets of evaluation metrics to decide whether the
+        new model is better than the previous ones or not.
+
+        Args:
+          new_metrics: A dictionary of the evaluation metrics of the new model.
+          old_metrics: A dictionary of the evaluation metrics of the previously
+            best model, i.e. the one to compare to.
+
+        Returns:
+          True if the new model is better than the old one, and False otherwise.
+        """
+        if old_metrics is None:
+            return True
+        for key, is_larger in [('val/val_metric', False), ('val/acc', True), ('val/loss', False)]:
+            if key in new_metrics:
+                if is_larger:
+                    return new_metrics[key] > old_metrics[key]
+                else:
+                    return new_metrics[key] < old_metrics[key]
+        assert False, f'No known metrics to log on: {new_metrics}'
+        
+    def save_metrics(self,
+                     filename : str,
+                     metrics : Dict[str, Any]):
+        """
+        Saves a dictionary of metrics to file. Can be used as a textual
+        representation of the validation performance for checking in the terminal.
+
+        Args:
+          filename: Name of the metrics file without folders and postfix.
+          metrics: A dictionary of metrics to save in the file.
+        """
+        with open(os.path.join(self.log_dir, f'metrics/{filename}.json'), 'w') as f:
+            json.dump(metrics, f, indent=4)
 
     def on_training_start(self):
         pass
@@ -198,14 +227,31 @@ class TrainerModule:
         pass
 
     def on_training_end(self):
-        pass
+        if self.pl_logger:
+            self.pl_logger.finalize("success")
 
-    def save_model(self, name: str = "checkpoint.ckpt"):
+    def save_state(self, name: Optional[str] = None):
+        if name is None:
+            name = "checkpoint_state.ckpts"
         from pathlib import Path
 
         path = Path(self.log_dir).joinpath(name)
-        eqx.tree_serialise_leaves(str(path), self.model)
+        eqx.tree_serialise_leaves(str(path), self.state)
+
+    def load_state(self, name: str):
+        state = eqx.tree_deserialise_leaves(f"{name}", self.state)
+        self.state = state
+
+    def save_model(self, name: Optional[str]=None):
+        
+        if name is None:
+            name = self.save_name
+        from pathlib import Path
+
+        path = Path(self.log_dir).joinpath(name)
+        eqx.tree_serialise_leaves(str(path), self.state.params)
 
     def load_model(self, name: str):
-        model = eqx.tree_deserialise_leaves(f"{name}", self.model)
-        self.model = model
+        params = eqx.tree_deserialise_leaves(f"{name}", self.state.params)
+        self.state = eqx.tree_at(lambda x: x.params, self.state, params)
+

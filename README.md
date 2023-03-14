@@ -24,7 +24,7 @@ This package isn't pip-worthy (yet) but here are a few options for installation.
 ```bash
 https://github.com/jejjohnson/eqx-trainer.git
 cd eqx-trainer
-pip install -e .
+pip install -e .[dev,all]
 ```
 
 **Option II**: Install it from pip directly.
@@ -39,4 +39,6 @@ pip install "git+https://github.com/jejjohnson/eqx-trainer.git"
 ---
 ## Inspiration
 
-* [lucidrains/siren-pytorch](https://github.com/lucidrains/siren-pytorch/tree/master)
+* [UVADLC Course](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/guide4/Research_Projects_with_JAX.html)
+* [JaxLightning](https://github.com/ludwigwinkler/JaxLightning)
+* [Tez](https://github.com/abhishekkrthakur/tez)

@@ -24,3 +24,4 @@ build/
 *.ckpt
 *.nc
 \private/
+.DS_Store

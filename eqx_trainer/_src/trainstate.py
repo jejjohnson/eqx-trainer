@@ -2,20 +2,28 @@ from typing import NamedTuple
 import equinox as eqx
 import optax
 import dataclasses
+from jaxtyping import PyTree
+
 
 class TrainState(eqx.Module):
-    step: int
     params: eqx.Module
-    tx: optax.GradientTransformation
     opt_state: optax.OptState
-    
-    @classmethod
-    def create(cls, params: eqx.Module, tx: optax.GradientTransformation):
-        return cls(step=0, params=params, opt_state=tx.init(params), tx=tx)
-    
-    def apply_gradients(self, grads):
-        updates, opt_state = self.tx.update(grads, self.opt_state, params=self.params)
-        params = eqx.apply_updates(self.params, updates)
-        # return TrainState(step=self.step+1, params=params, tx=self.tx, opt_state=opt_state)
-        return dataclasses.replace(self, step=self.step+1, params=params, opt_state=opt_state)
-        
+    tx: optax.GradientTransformation = eqx.static_field()
+
+    def __init__(self, params: eqx.Module, tx: optax.GradientTransformation):
+        self.params = params
+        self.tx = tx
+        self.opt_state = tx.init(params)
+
+    @staticmethod
+    def update_state(state: PyTree, grads: PyTree) -> PyTree:
+        # apply gradients
+        updates, opt_state = state.tx.update(
+            grads, state.opt_state, params=state.params
+        )
+
+        params = optax.apply_updates(state.params, updates)
+        state = eqx.tree_at(lambda x: x.params, state, params)
+        state = eqx.tree_at(lambda x: x.opt_state, state, opt_state)
+
+        return state
