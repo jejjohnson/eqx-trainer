@@ -39,21 +39,21 @@ install_precommit: ## Install precommit tools
 
 ##@ Formatting
 black:  ## Format code in-place using black.
-	black ${PKGROOT}/ ${TESTS} -l 79 .
+	black ${PKGROOT}/ -l 79 .
 
 isort:  ## Format imports in-place using isort.
-	isort ${PKGROOT}/ ${TESTS}
+	isort ${PKGROOT}/
 
 format: ## Code styling - black, isort
-		black ${PKGROOT}/ ${TESTS} -l 79 .
+		black ${PKGROOT}/ -l 79 .
 		@printf "\033[1;34mBlack passes!\033[0m\n\n"
-		isort ${PKGROOT}/ ${TESTS}
+		isort ${PKGROOT}/
 		@printf "\033[1;34misort passes!\033[0m\n\n"
 
 ##@ Testing
 test:  ## Test code using pytest.
 	@printf "\033[1;34mRunning tests with pytest...\033[0m\n\n"
-	pytest -v ${PKGROOT}/ ${TESTS}
+	pytest -v ${PKGROOT}/
 	@printf "\033[1;34mPyTest passes!\033[0m\n\n"
 
 ##@ JupyterBook
@@ -63,6 +63,11 @@ jb_build: ## Build Jupyterbook
 
 jb_clean: ## Clean JupyterBook
 	jupyter-book clean docs
+
+precommit: ## Run recommit
+		@printf "\033[1;34mRunning precommit routine...\033[0m\n\n"
+		pre-commit run --all-files
+		@printf "\033[1;34mFinished!\033[0m\n\n"
 
 run_versioneer: ## run the versioneer software
 	versioneer install --vendor

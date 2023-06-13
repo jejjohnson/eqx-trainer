@@ -1,5 +1,6 @@
-import wandb
 from pathlib import Path
+
+import wandb
 
 
 def download_artifact():
@@ -7,7 +8,6 @@ def download_artifact():
 
 
 def load_wandb_run_config(entity: str, project: str, id: str):
-
     api = wandb.Api()
     reference = str(f"{entity}/{project}/{id}")
     prev_run = api.run(reference)
@@ -41,17 +41,17 @@ def download_wandb_artifact(
 
 def get_checkpoint_filename(directory: str, name: str) -> str:
     files = list(Path(directory).glob(f"*{name}*"))
-    
+
     assert len(files) == 1
-    
+
     return files[0]
 
+
 def download_wandb_artifact_model(entity, project, reference, model_name):
-    
     artifact_dir = download_wandb_artifact(
         entity=entity, project=project, reference=reference
     )
-    
+
     filename = get_checkpoint_filename(artifact_dir, model_name)
-    
+
     return filename

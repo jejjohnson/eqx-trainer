@@ -1,11 +1,11 @@
 import numpy as np
 
-def numpy_collate(batch):
 
+def numpy_collate(batch):
     # return jax.tree_map(lambda tensor: np.ndarray(tensor), batch)
     if isinstance(batch[0], np.ndarray):
         return np.stack(batch)
-    elif isinstance(batch[0], (tuple,list)):
+    elif isinstance(batch[0], (tuple, list)):
         transposed = zip(*batch)
         return [numpy_collate(samples) for samples in transposed]
     elif isinstance(batch[0], dict):

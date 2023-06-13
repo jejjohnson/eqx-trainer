@@ -1,7 +1,5 @@
-from typing import NamedTuple
 import equinox as eqx
 import optax
-import dataclasses
 from jaxtyping import PyTree
 
 
