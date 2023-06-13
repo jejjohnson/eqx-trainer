@@ -8,3 +8,4 @@ jupyter-book
 ghp-import
 sphinx-proof
 jupytext
+jax_dataloader

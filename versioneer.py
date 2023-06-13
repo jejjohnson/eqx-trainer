@@ -1476,11 +1476,15 @@ def versions_from_file(filename):
     except OSError:
         raise NotThisMethod("unable to read _version.py")
     mo = re.search(
-        r"version_json = '''\n(.*)'''  # END VERSION_JSON", contents, re.M | re.S
+        r"version_json = '''\n(.*)'''  # END VERSION_JSON",
+        contents,
+        re.M | re.S,
     )
     if not mo:
         mo = re.search(
-            r"version_json = '''\r\n(.*)'''  # END VERSION_JSON", contents, re.M | re.S
+            r"version_json = '''\r\n(.*)'''  # END VERSION_JSON",
+            contents,
+            re.M | re.S,
         )
     if not mo:
         raise NotThisMethod("no version_json in _version.py")
@@ -1579,7 +1583,10 @@ def render_pep440_pre(pieces):
             tag_version, post_version = pep440_split_post(pieces["closest-tag"])
             rendered = tag_version
             if post_version is not None:
-                rendered += ".post%d.dev%d" % (post_version + 1, pieces["distance"])
+                rendered += ".post%d.dev%d" % (
+                    post_version + 1,
+                    pieces["distance"],
+                )
             else:
                 rendered += ".post0.dev%d" % (pieces["distance"])
         else:
@@ -2162,7 +2169,11 @@ def do_setup():
     root = get_root()
     try:
         cfg = get_config_from_root(root)
-    except (OSError, configparser.NoSectionError, configparser.NoOptionError) as e:
+    except (
+        OSError,
+        configparser.NoSectionError,
+        configparser.NoOptionError,
+    ) as e:
         if isinstance(e, (OSError, configparser.NoSectionError)):
             print("Adding sample versioneer config to setup.cfg", file=sys.stderr)
             with open(os.path.join(root, "setup.cfg"), "a") as f:

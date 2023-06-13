@@ -1,4 +1,4 @@
-name: py_template_dev
+name: eqx_trainer
 channels:
   - conda-forge
 dependencies:

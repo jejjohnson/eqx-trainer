@@ -1,1 +1,1 @@
-py_template/_src/_version.py export-subst
+eqx_trainer/_src/_version.py export-subst

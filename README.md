@@ -1,39 +1,24 @@
-# Personal Py-Package Template
+# A Simple Trainer for neural networks with `Equinox`
 
-[![codecov](https://codecov.io/gh/jejjohnson/py_template/branch/master/graph/badge.svg?token=DM1DRDASU2)](https://codecov.io/gh/jejjohnson/py_template)
-[![CodeFactor](https://www.codefactor.io/repository/github/jejjohnson/py_template/badge)](https://www.codefactor.io/repository/github/jejjohnson/py_template)
-
-This is my personal template for python packages
-
-
----
-## Components
-
-**Versioning**: `versioneer`
-
-**Documentation**: `jupyterbook`
 
 
 ---
 ## Installation
 
+This package isn't pip-worthy (yet) but here are a few options for installation.
 
-**Option I**: Use the `setup.py` file
+**Option I**: Use the `pip` install option (locally)
 
 ```bash
-python setup.py install
+https://github.com/jejjohnson/eqx-trainer.git
+cd eqx-trainer
+pip install -e .[dev,all]
 ```
 
-**Option II**: Use the `pip` install option (locally)
+**Option II**: Install it from pip directly.
 
 ```bash
-pip install -e .
-```
-
-**Option III**:
-
-```bash
-pip install "git+https://github.com/jejjohnson/py_template.git"
+pip install "git+https://github.com/jejjohnson/eqx-trainer.git"
 ```
 
 
@@ -41,7 +26,6 @@ pip install "git+https://github.com/jejjohnson/py_template.git"
 ---
 ## Inspiration
 
-* [plum](https://github.com/wesselb/plum)
-* [GPJax](https://github.com/JaxGaussianProcesses/GPJax/tree/master)
-* [Nvidia-Merlin DataLoader](https://github.com/NVIDIA-Merlin/dataloader/tree/main)
-* [xrft](https://github.com/xgcm/xrft/tree/master)
+* [UVADLC Course](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/guide4/Research_Projects_with_JAX.html)
+* [JaxLightning](https://github.com/ludwigwinkler/JaxLightning)
+* [Tez](https://github.com/abhishekkrthakur/tez)

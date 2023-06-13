@@ -11,12 +11,12 @@
 """Git implementation of _version.py."""
 
 import errno
+import functools
 import os
 import re
 import subprocess
 import sys
 from typing import Callable, Dict
-import functools
 
 
 def get_keywords():
@@ -45,7 +45,7 @@ def get_config():
     cfg.style = "pep440"
     cfg.tag_prefix = "v"
     cfg.parentdir_prefix = "None"
-    cfg.versionfile_source = "py_template/_src/_version.py"
+    cfg.versionfile_source = "eqx_trainer/_src/_version.py"
     cfg.verbose = False
     return cfg
 
@@ -469,7 +469,10 @@ def render_pep440_pre(pieces):
             tag_version, post_version = pep440_split_post(pieces["closest-tag"])
             rendered = tag_version
             if post_version is not None:
-                rendered += ".post%d.dev%d" % (post_version + 1, pieces["distance"])
+                rendered += ".post%d.dev%d" % (
+                    post_version + 1,
+                    pieces["distance"],
+                )
             else:
                 rendered += ".post0.dev%d" % (pieces["distance"])
         else:
