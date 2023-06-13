@@ -1,17 +1,5 @@
-# Personal Py-Package Template
+# A Simple Trainer for neural networks with `Equinox`
 
-[![codecov](https://codecov.io/gh/jejjohnson/eqx-trainer/branch/master/graph/badge.svg?token=DM1DRDASU2)](https://codecov.io/gh/jejjohnson/eqx-trainer)
-[![CodeFactor](https://www.codefactor.io/repository/github/jejjohnson/eqx-trainer/badge)](https://www.codefactor.io/repository/github/jejjohnson/eqx-trainer)
-
-This is my personal template for python packages
-
-
----
-## Components
-
-**Versioning**: `versioneer`
-
-**Documentation**: `jupyterbook`
 
 
 ---
@@ -35,7 +23,6 @@ pip install "git+https://github.com/jejjohnson/eqx-trainer.git"
 
 
 
----
 ---
 ## Inspiration
 
